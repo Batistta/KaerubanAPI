@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface BoardColumnRepository extends JpaRepository<BoardColumn, Integer> {
     List<BoardColumn> findByBoard_IdBoardOrderByPosition(Integer boardId);
+    int countByBoard_IdBoard(Integer boardId);
 }

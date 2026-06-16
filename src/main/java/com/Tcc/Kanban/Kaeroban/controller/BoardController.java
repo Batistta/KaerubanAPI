@@ -32,6 +32,11 @@ public class BoardController {
         return ResponseEntity.ok(boardService.findById(id));
     }
 
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<BoardResponseDTO>> getByUser(@PathVariable Integer userId) {
+        return ResponseEntity.ok(boardService.findByUser(userId));
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<BoardResponseDTO> update(@PathVariable Integer id, @RequestBody BoardRequestDTO requestDTO) {
         return ResponseEntity.ok(boardService.update(id, requestDTO));

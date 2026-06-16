@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -39,6 +40,16 @@ public class BoardService {
     public BoardResponseDTO findById(Integer id) {
         return toDTO(boardRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Board not found")));
+    }
+
+    public List<BoardResponseDTO> findByUser(Integer userId) {
+        List<Board> owned = boardRepository.findByOwner_IdUser(userId);
+        List<Board> member = boardRepository.findByMembers_IdUser(userId);
+
+        return Stream.concat(owned.stream(), member.stream())
+                .distinct()
+                .map(this::toDTO)
+                .toList();
     }
 
     public BoardResponseDTO update(Integer id, BoardRequestDTO requestDTO) {
@@ -79,6 +90,7 @@ public class BoardService {
                 user.getCreatedAt()
         );
     }
+
 
     private BoardResponseDTO toDTO(Board board) {
         return new BoardResponseDTO(

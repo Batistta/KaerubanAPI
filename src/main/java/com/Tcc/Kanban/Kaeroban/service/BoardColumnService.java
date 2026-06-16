@@ -21,10 +21,13 @@ public class BoardColumnService {
     public BoardColumnResponseDTO save(BoardColumnRequestDTO requestDTO) {
         Board board = boardRepository.findById(requestDTO.boardId())
                 .orElseThrow(() -> new EntityNotFoundException("Board not found"));
+
+        int nextPosition = boardColumnRepository.countByBoard_IdBoard(requestDTO.boardId());
+
         BoardColumn column = new BoardColumn();
         column.setTitle(requestDTO.title());
-        column.setColor(requestDTO.color());
-        column.setPosition(requestDTO.position());
+        column.setColor(requestDTO.color() != null ? requestDTO.color() : "#ffffff");
+        column.setPosition(nextPosition);
         column.setWipLimit(requestDTO.wipLimit());
         column.setBoard(board);
         return toDTO(boardColumnRepository.save(column));

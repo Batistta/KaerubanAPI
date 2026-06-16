@@ -26,10 +26,12 @@ public class CardService {
     public CardResponseDTO save(CardRequestDTO requestDTO) {
         BoardColumn column = boardColumnRepository.findById(requestDTO.columnId())
                 .orElseThrow(() -> new EntityNotFoundException("Column not found"));
+
+        int nextPosition = cardRepository.countByColumn_IdColumn(requestDTO.columnId());
         Card card = new Card();
         card.setTitle(requestDTO.title());
         card.setDescription(requestDTO.description());
-        card.setPosition(requestDTO.position());
+        card.setPosition(nextPosition);
         card.setPriority(requestDTO.priority() != null ? Priority.valueOf(requestDTO.priority()) : null);
         card.setDueDate(requestDTO.dueDate());
         card.setColumn(column);
