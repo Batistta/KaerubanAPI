@@ -9,6 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 
 @RestController
 @RequiredArgsConstructor
@@ -17,18 +19,23 @@ import org.springframework.web.bind.annotation.*;
 public class BoardInviteController {
     private final BoardInviteService boardInviteService;
 
+    @GetMapping("/{id}")
+    public ResponseEntity<List<BoardInviteResponseDTO>> getAllBoardInvites(@PathVariable Integer id) {
+        return new ResponseEntity<>(boardInviteService.getAllInvitesByBoard(id), HttpStatus.OK);
+    }
+
     @PostMapping
-    public ResponseEntity<BoardInviteResponseDTO> generateInvite(BoardInviteCreateDTO requestDto) {
+    public ResponseEntity<BoardInviteResponseDTO> generateInvite(@RequestBody BoardInviteCreateDTO requestDto) {
         return new ResponseEntity<>(boardInviteService.generate(requestDto),HttpStatus.CREATED);
     }
 
     @PostMapping("/redeem")
-    public ResponseEntity<Void> redeem(BoardInviteRedeemDTO requestDto) {
+    public ResponseEntity<Void> redeem(@RequestBody BoardInviteRedeemDTO requestDto) {
         boardInviteService.redeem(requestDto);
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
         boardInviteService.delete(id);
         return ResponseEntity.noContent().build();

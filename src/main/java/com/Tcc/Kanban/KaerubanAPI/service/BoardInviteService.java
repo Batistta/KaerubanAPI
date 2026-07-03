@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.security.InvalidParameterException;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -24,6 +25,12 @@ public class BoardInviteService {
     private final BoardRepository boardRepository;
     private final BoardInviteRepository boardInviteRepository;
     private final UserRepository userRepository;
+
+    public List<BoardInviteResponseDTO> getAllInvitesByBoard(Integer id){
+        List<BoardInviteResponseDTO> invites = boardInviteRepository.findByBoard_idBoard(id).stream()
+                .map(boardInvite -> BoardInviteResponseDTO.from(boardInvite)).toList();
+        return invites;
+    }
 
     public BoardInviteResponseDTO generate(BoardInviteCreateDTO requestDto){
         Board board = boardRepository.findById(requestDto.boardId())
