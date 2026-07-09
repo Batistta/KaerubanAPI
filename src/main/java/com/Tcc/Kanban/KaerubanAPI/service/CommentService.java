@@ -1,7 +1,7 @@
 package com.Tcc.Kanban.KaerubanAPI.service;
 
-import com.Tcc.Kanban.KaerubanAPI.dto.CommentRequestDTO;
-import com.Tcc.Kanban.KaerubanAPI.dto.CommentResponseDTO;
+import com.Tcc.Kanban.KaerubanAPI.dto.comment.CommentRequestDTO;
+import com.Tcc.Kanban.KaerubanAPI.dto.comment.CommentResponseDTO;
 import com.Tcc.Kanban.KaerubanAPI.model.Card;
 import com.Tcc.Kanban.KaerubanAPI.model.Comment;
 import com.Tcc.Kanban.KaerubanAPI.model.User;
@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -33,24 +34,24 @@ public class CommentService {
         return toDTO(commentRepository.save(comment));
     }
 
-    public List<CommentResponseDTO> findByCard(Integer cardId) {
-        return commentRepository.findByCard_IdCardOrderByCreatedAtDesc(cardId)
+    public List<CommentResponseDTO> findByCard(UUID cardId) {
+        return commentRepository.findByCard_IdOrderByCreatedAtDesc(cardId)
                 .stream().map(this::toDTO).toList();
     }
 
-    public CommentResponseDTO findById(Integer id) {
+    public CommentResponseDTO findById(UUID id) {
         return toDTO(commentRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Comment not found")));
     }
 
-    public CommentResponseDTO update(Integer id, CommentRequestDTO requestDTO) {
+    public CommentResponseDTO update(UUID id, CommentRequestDTO requestDTO) {
         Comment comment = commentRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Comment not found"));
         comment.setContent(requestDTO.content());
         return toDTO(commentRepository.save(comment));
     }
 
-    public void delete(Integer id) {
+    public void delete(UUID id) {
         commentRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Comment not found"));
         commentRepository.deleteById(id);
@@ -58,12 +59,12 @@ public class CommentService {
 
     private CommentResponseDTO toDTO(Comment comment) {
         return new CommentResponseDTO(
-                comment.getIdComents(),
+                comment.getId(),
                 comment.getContent(),
                 comment.getCreatedAt(),
-                comment.getUser().getIdUser(),
+                comment.getUser().getId(),
                 comment.getUser().getName(),
-                comment.getCard().getIdCard()
+                comment.getCard().getId()
         );
     }
 }

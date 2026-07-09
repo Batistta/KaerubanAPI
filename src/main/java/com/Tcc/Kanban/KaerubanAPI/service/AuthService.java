@@ -1,18 +1,18 @@
 package com.Tcc.Kanban.KaerubanAPI.service;
 
-import com.Tcc.Kanban.KaerubanAPI.dto.AuthRequestDTO;
-import com.Tcc.Kanban.KaerubanAPI.dto.UserResponseDTO;
+import com.Tcc.Kanban.KaerubanAPI.dto.user.AuthRequestDTO;
+import com.Tcc.Kanban.KaerubanAPI.dto.user.UserResponseDTO;
 import com.Tcc.Kanban.KaerubanAPI.model.User;
 import com.Tcc.Kanban.KaerubanAPI.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class AuthService {
     private final UserRepository userRepository;
-    private final BCryptPasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
 
     public UserResponseDTO login(AuthRequestDTO requestDTO) {
         User user = userRepository.findByEmail(requestDTO.email())
@@ -23,7 +23,7 @@ public class AuthService {
         }
 
         return new UserResponseDTO(
-                user.getIdUser(),
+                user.getId(),
                 user.getName(),
                 user.getEmail(),
                 user.getCreatedAt()

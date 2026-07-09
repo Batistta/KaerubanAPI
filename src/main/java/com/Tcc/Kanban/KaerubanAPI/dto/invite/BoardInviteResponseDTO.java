@@ -1,13 +1,14 @@
-package com.Tcc.Kanban.KaerubanAPI.dto;
+package com.Tcc.Kanban.KaerubanAPI.dto.invite;
 
 import com.Tcc.Kanban.KaerubanAPI.model.BoardInvite;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public record BoardInviteResponseDTO(
-        Integer id,
-        Integer boardId,
+        UUID id,
+        UUID boardId,
         String boardTitle,
         String code,
         LocalDate expiresAt,
@@ -15,8 +16,8 @@ public record BoardInviteResponseDTO(
 ) {
     public static BoardInviteResponseDTO from(BoardInvite invite) {
         return new BoardInviteResponseDTO(
-                invite.getIdInvite(),
-                invite.getBoard().getIdBoard(),
+                invite.getId(),
+                invite.getBoard().getId(),
                 invite.getBoard().getTitle(),
                 invite.getCode(),
                 invite.getExpiresAt(),

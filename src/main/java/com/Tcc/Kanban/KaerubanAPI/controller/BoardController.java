@@ -1,7 +1,7 @@
 package com.Tcc.Kanban.KaerubanAPI.controller;
 
-import com.Tcc.Kanban.KaerubanAPI.dto.BoardRequestDTO;
-import com.Tcc.Kanban.KaerubanAPI.dto.BoardResponseDTO;
+import com.Tcc.Kanban.KaerubanAPI.dto.board.BoardRequestDTO;
+import com.Tcc.Kanban.KaerubanAPI.dto.board.BoardResponseDTO;
 import com.Tcc.Kanban.KaerubanAPI.service.BoardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -28,13 +29,13 @@ public class BoardController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<BoardResponseDTO> getById(@PathVariable Integer id) {
+    public ResponseEntity<BoardResponseDTO> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(boardService.findById(id));
     }
 
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<BoardResponseDTO>> getByUser(
-            @PathVariable Integer userId,
+            @PathVariable UUID userId,
             @RequestParam(required = false) String title) {
         if (title != null && !title.isBlank()) {
             return ResponseEntity.ok(boardService.findByUserAndTitle(userId, title));
@@ -43,28 +44,23 @@ public class BoardController {
     }
 
     @GetMapping("/user/{userId}/member")
-    public ResponseEntity<List<BoardResponseDTO>> getByMember(@PathVariable Integer userId) {
+    public ResponseEntity<List<BoardResponseDTO>> getByMember(@PathVariable UUID userId) {
         return ResponseEntity.ok(boardService.findByMember(userId));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<BoardResponseDTO> update(@PathVariable Integer id, @RequestBody BoardRequestDTO requestDTO) {
+    public ResponseEntity<BoardResponseDTO> update(@PathVariable UUID id, @RequestBody BoardRequestDTO requestDTO) {
         return ResponseEntity.ok(boardService.update(id, requestDTO));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Integer id) {
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
         boardService.delete(id);
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{boardId}/members/{userId}")
-    public ResponseEntity<BoardResponseDTO> addMember(@PathVariable Integer boardId, @PathVariable Integer userId) {
-        return ResponseEntity.ok(boardService.addMember(boardId, userId));
-    }
-
     @DeleteMapping("/{boardId}/members/{userId}")
-    public ResponseEntity<BoardResponseDTO> removeMember(@PathVariable Integer boardId, @PathVariable Integer userId) {
+    public ResponseEntity<BoardResponseDTO> removeMember(@PathVariable UUID boardId, @PathVariable UUID userId) {
         return ResponseEntity.ok(boardService.removeMember(boardId, userId));
     }
 }

@@ -1,17 +1,20 @@
-package com.Tcc.Kanban.KaerubanAPI.dto;
+package com.Tcc.Kanban.KaerubanAPI.dto.card;
+
+import com.Tcc.Kanban.KaerubanAPI.dto.label.LabelResponseDTO;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 public record CardResponseDTO(
-        Integer idCard,
+        UUID idCard,
         String title,
         String description,
         Integer position,
         String priority,
         LocalDate dueDate,
         LocalDateTime createdAt,
-        Integer columnId,
+        UUID columnId,
         List<LabelResponseDTO> labels
 ) {}

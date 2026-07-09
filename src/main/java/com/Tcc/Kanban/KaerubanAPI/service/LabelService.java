@@ -1,7 +1,7 @@
 package com.Tcc.Kanban.KaerubanAPI.service;
 
-import com.Tcc.Kanban.KaerubanAPI.dto.LabelRequestDTO;
-import com.Tcc.Kanban.KaerubanAPI.dto.LabelResponseDTO;
+import com.Tcc.Kanban.KaerubanAPI.dto.label.LabelRequestDTO;
+import com.Tcc.Kanban.KaerubanAPI.dto.label.LabelResponseDTO;
 import com.Tcc.Kanban.KaerubanAPI.model.Board;
 import com.Tcc.Kanban.KaerubanAPI.model.Label;
 import com.Tcc.Kanban.KaerubanAPI.repository.BoardRepository;
@@ -13,12 +13,12 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class LabelService {
     private final LabelRepository labelRepository;
-    private final CardRepository cardRepository;
     private final BoardRepository boardRepository;
 
     public LabelResponseDTO save(LabelRequestDTO requestDTO) {
@@ -31,7 +31,7 @@ public class LabelService {
         return toDTO(labelRepository.save(label));
     }
 
-    public LabelResponseDTO findById(Integer id) {
+    public LabelResponseDTO findById(UUID id) {
         Label label = labelRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Label not found"));
         return toDTO(label);
@@ -44,15 +44,15 @@ public class LabelService {
         return dtos;
     }
 
-    public LabelResponseDTO findByBoardId(Integer boardId) {
+    public LabelResponseDTO findByBoardId(UUID boardId) {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new EntityNotFoundException("Board not found"));
-        Label label = labelRepository.findByBoard_idBoard(board.getIdBoard())
+        Label label = labelRepository.findByBoard_Id(board.getId())
                 .orElseThrow(() -> new EntityNotFoundException("Label not found"));
         return toDTO(label);
     }
 
-    public LabelResponseDTO updateById(Integer id, LabelRequestDTO requestDTO) {
+    public LabelResponseDTO updateById(UUID id, LabelRequestDTO requestDTO) {
         Label label = labelRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Label not found"));
         label.setName(requestDTO.name());
@@ -60,7 +60,7 @@ public class LabelService {
         return toDTO(labelRepository.save(label));
     }
 
-    public void deleteById(Integer id) {
+    public void deleteById(UUID id) {
         Label label = labelRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Label not found"));
         labelRepository.delete(label);
@@ -69,8 +69,8 @@ public class LabelService {
 
     public LabelResponseDTO toDTO(Label label) {
         return new LabelResponseDTO(
-                label.getBoard().getIdBoard(),
-                label.getIdLabel(),
+                label.getBoard().getId(),
+                label.getId(),
                 label.getName(),
                 label.getColor());
 

@@ -5,8 +5,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
-public interface LabelRepository extends JpaRepository<Label, Integer> {
-    Optional<Label> findByBoard_idBoard(Integer boardId);
+public interface LabelRepository extends JpaRepository<Label, UUID> {
+    Optional<Label> findByBoard_Id(UUID boardId);
     List<Label> findByNameContaining(String name);
 }

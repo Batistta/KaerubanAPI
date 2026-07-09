@@ -4,13 +4,12 @@ import com.Tcc.Kanban.KaerubanAPI.model.Board;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 @Repository
-public interface BoardRepository extends JpaRepository<Board, Integer> {
-    List<Board> findByOwner_IdUser(Integer ownerId);
-    List<Board> findByMembers_IdUser(Integer userId);
-
-    List<Board> findByOwner_IdUserAndTitleContainingIgnoreCase(Integer userId, String title);
-    List<Board> findByMembers_IdUserAndTitleContainingIgnoreCase(Integer userId, String title);
+public interface BoardRepository extends JpaRepository<Board, UUID> {
+    List<Board> findByMembers_User_Id(UUID userId);
+    List<Board> findByMembers_User_IdAndTitleContainingIgnoreCase(UUID userId, String title);
 }

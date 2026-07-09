@@ -1,7 +1,7 @@
 package com.Tcc.Kanban.KaerubanAPI.controller;
 
-import com.Tcc.Kanban.KaerubanAPI.dto.LabelRequestDTO;
-import com.Tcc.Kanban.KaerubanAPI.dto.LabelResponseDTO;
+import com.Tcc.Kanban.KaerubanAPI.dto.label.LabelRequestDTO;
+import com.Tcc.Kanban.KaerubanAPI.dto.label.LabelResponseDTO;
 import com.Tcc.Kanban.KaerubanAPI.service.LabelService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -23,12 +24,12 @@ public class LabelController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<LabelResponseDTO> getById(@PathVariable Integer id) {
+    public ResponseEntity<LabelResponseDTO> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(labelService.findById(id));
     }
 
     @GetMapping("/board/{boardId}")
-    public ResponseEntity<LabelResponseDTO> getByBoard(@PathVariable Integer boardId) {
+    public ResponseEntity<LabelResponseDTO> getByBoard(@PathVariable UUID boardId) {
         return ResponseEntity.ok(labelService.findByBoardId(boardId));
     }
 
@@ -38,12 +39,12 @@ public class LabelController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<LabelResponseDTO> update(@PathVariable Integer id, @RequestBody LabelRequestDTO requestDTO) {
+    public ResponseEntity<LabelResponseDTO> update(@PathVariable UUID id, @RequestBody LabelRequestDTO requestDTO) {
         return ResponseEntity.ok(labelService.updateById(id, requestDTO));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Integer id) {
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
         labelService.deleteById(id);
         return ResponseEntity.noContent().build();
     }

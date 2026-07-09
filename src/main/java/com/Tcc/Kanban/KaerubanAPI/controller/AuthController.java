@@ -1,7 +1,7 @@
 package com.Tcc.Kanban.KaerubanAPI.controller;
 
-import com.Tcc.Kanban.KaerubanAPI.dto.AuthRequestDTO;
-import com.Tcc.Kanban.KaerubanAPI.dto.UserResponseDTO;
+import com.Tcc.Kanban.KaerubanAPI.dto.user.AuthRequestDTO;
+import com.Tcc.Kanban.KaerubanAPI.dto.user.UserResponseDTO;
 import com.Tcc.Kanban.KaerubanAPI.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

@@ -1,9 +1,9 @@
 package com.Tcc.Kanban.KaerubanAPI.controller;
 
-import com.Tcc.Kanban.KaerubanAPI.dto.ChecklistItemRequestDTO;
-import com.Tcc.Kanban.KaerubanAPI.dto.ChecklistItemResponseDTO;
-import com.Tcc.Kanban.KaerubanAPI.dto.ChecklistRequestDTO;
-import com.Tcc.Kanban.KaerubanAPI.dto.ChecklistResponseDTO;
+import com.Tcc.Kanban.KaerubanAPI.dto.checklist.item.ChecklistItemRequestDTO;
+import com.Tcc.Kanban.KaerubanAPI.dto.checklist.item.ChecklistItemResponseDTO;
+import com.Tcc.Kanban.KaerubanAPI.dto.checklist.ChecklistRequestDTO;
+import com.Tcc.Kanban.KaerubanAPI.dto.checklist.ChecklistResponseDTO;
 import com.Tcc.Kanban.KaerubanAPI.service.ChecklistService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -25,27 +26,25 @@ public class ChecklistController {
     }
 
     @GetMapping("/card/{cardId}")
-    public ResponseEntity<List<ChecklistResponseDTO>> getByCard(@PathVariable Integer cardId) {
+    public ResponseEntity<List<ChecklistResponseDTO>> getByCard(@PathVariable UUID cardId) {
         return ResponseEntity.ok(checklistService.findByCard(cardId));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ChecklistResponseDTO> getById(@PathVariable Integer id) {
+    public ResponseEntity<ChecklistResponseDTO> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(checklistService.findById(id));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ChecklistResponseDTO> update(@PathVariable Integer id, @RequestBody ChecklistRequestDTO requestDTO) {
+    public ResponseEntity<ChecklistResponseDTO> update(@PathVariable UUID id, @RequestBody ChecklistRequestDTO requestDTO) {
         return ResponseEntity.ok(checklistService.update(id, requestDTO));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Integer id) {
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
         checklistService.delete(id);
         return ResponseEntity.noContent().build();
     }
-
-
 
     @PostMapping("/items")
     public ResponseEntity<ChecklistItemResponseDTO> saveItem(@RequestBody ChecklistItemRequestDTO requestDTO) {
@@ -53,17 +52,17 @@ public class ChecklistController {
     }
 
     @GetMapping("/{checklistId}/items")
-    public ResponseEntity<List<ChecklistItemResponseDTO>> getItems(@PathVariable Integer checklistId) {
+    public ResponseEntity<List<ChecklistItemResponseDTO>> getItems(@PathVariable UUID checklistId) {
         return ResponseEntity.ok(checklistService.findItemsByChecklist(checklistId));
     }
 
     @PutMapping("/items/{id}")
-    public ResponseEntity<ChecklistItemResponseDTO> updateItem(@PathVariable Integer id, @RequestBody ChecklistItemRequestDTO requestDTO) {
+    public ResponseEntity<ChecklistItemResponseDTO> updateItem(@PathVariable UUID id, @RequestBody ChecklistItemRequestDTO requestDTO) {
         return ResponseEntity.ok(checklistService.updateItem(id, requestDTO));
     }
 
     @DeleteMapping("/items/{id}")
-    public ResponseEntity<Void> deleteItem(@PathVariable Integer id) {
+    public ResponseEntity<Void> deleteItem(@PathVariable UUID id) {
         checklistService.deleteItem(id);
         return ResponseEntity.noContent().build();
     }

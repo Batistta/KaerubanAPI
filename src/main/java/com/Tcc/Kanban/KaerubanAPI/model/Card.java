@@ -9,16 +9,18 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Getter @Setter
 public class Card {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer idCard;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "id_card", columnDefinition = "BINARY(16)")
+    private UUID id;
 
-    @ManyToOne
-    @JoinColumn(name = "fk_column", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "fk_column", nullable = false, columnDefinition = "BINARY(16)")
     private BoardColumn column;
 
     @Column(nullable = false)
@@ -38,7 +40,7 @@ public class Card {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "card_label",
             joinColumns = @JoinColumn(name = "fk_card"),
@@ -46,4 +48,15 @@ public class Card {
     )
     private List<Label> labels = new ArrayList<>();
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Card other)) return false;
+        return id != null && id.equals(other.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }

@@ -7,14 +7,15 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Getter @Setter
 public class User {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(nullable = false)
-    private Integer idUser;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(nullable = false, name = "id_user", columnDefinition = "BINARY(16)")
+    private UUID id;
 
     @Column(nullable = false, length = 100)
     private String name;
@@ -30,6 +31,19 @@ public class User {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @ManyToMany(mappedBy = "members")
-    private List<Board> boards;
+    @Column(nullable = true,  length = 80)
+    private String picture;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof User other)) return false;
+        return id != null && id.equals(other.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
+
 }

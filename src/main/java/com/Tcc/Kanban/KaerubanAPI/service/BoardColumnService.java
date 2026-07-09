@@ -1,7 +1,8 @@
 package com.Tcc.Kanban.KaerubanAPI.service;
 
-import com.Tcc.Kanban.KaerubanAPI.dto.BoardColumnRequestDTO;
-import com.Tcc.Kanban.KaerubanAPI.dto.BoardColumnResponseDTO;
+import com.Tcc.Kanban.KaerubanAPI.dto.column.BoardColumnResponseDTO;
+import com.Tcc.Kanban.KaerubanAPI.dto.column.BoardColumnSaveDTO;
+import com.Tcc.Kanban.KaerubanAPI.dto.column.BoardColumnUpdateDTO;
 import com.Tcc.Kanban.KaerubanAPI.model.Board;
 import com.Tcc.Kanban.KaerubanAPI.model.BoardColumn;
 import com.Tcc.Kanban.KaerubanAPI.repository.BoardColumnRepository;
@@ -11,8 +12,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -20,11 +21,11 @@ public class BoardColumnService {
     private final BoardColumnRepository boardColumnRepository;
     private final BoardRepository boardRepository;
 
-    public BoardColumnResponseDTO save(BoardColumnRequestDTO requestDTO) {
+    public BoardColumnResponseDTO save(BoardColumnSaveDTO requestDTO) {
         Board board = boardRepository.findById(requestDTO.boardId())
                 .orElseThrow(() -> new EntityNotFoundException("Board not found"));
 
-        int nextPosition = boardColumnRepository.countByBoard_IdBoard(requestDTO.boardId());
+        int nextPosition = boardColumnRepository.countByBoard_Id(requestDTO.boardId());
 
         BoardColumn column = new BoardColumn();
         column.setTitle(requestDTO.title());
@@ -35,18 +36,18 @@ public class BoardColumnService {
         return toDTO(boardColumnRepository.save(column));
     }
 
-    public List<BoardColumnResponseDTO> findByBoard(Integer boardId) {
-        return boardColumnRepository.findByBoard_IdBoardOrderByPosition(boardId)
+    public List<BoardColumnResponseDTO> findByBoard(UUID boardId) {
+        return boardColumnRepository.findByBoard_IdOrderByPosition(boardId)
                 .stream().map(this::toDTO).toList();
     }
 
-    public BoardColumnResponseDTO findById(Integer id) {
+    public BoardColumnResponseDTO findById(UUID id) {
         return toDTO(boardColumnRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Column not found")));
     }
 
     @Transactional
-    public BoardColumnResponseDTO update(Integer id, BoardColumnRequestDTO requestDTO) {
+    public BoardColumnResponseDTO update(UUID id, BoardColumnUpdateDTO requestDTO) {
         BoardColumn column = boardColumnRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Column not found"));
         column.setTitle(requestDTO.title());
@@ -55,22 +56,23 @@ public class BoardColumnService {
 
         if (!column.getPosition().equals(requestDTO.position())) {
             if (requestDTO.position() > column.getPosition()) {
-                List<BoardColumn> decrementColumns = boardColumnRepository.findByBoard_idBoardAndPositionGreaterThanAndPositionLessThanEqual(
-                        column.getBoard().getIdBoard(), column.getPosition(), requestDTO.position());
-                decrementColumns.forEach(c -> c.setPosition(c.getPosition() - 1));
-            }
-            else {
-                List<BoardColumn> incrementColumns = boardColumnRepository.findByBoard_idBoardAndPositionLessThanAndPositionGreaterThanEqual(
-                        column.getBoard().getIdBoard(), column.getPosition(), requestDTO.position());
-                incrementColumns.forEach(c -> c.setPosition(c.getPosition() + 1));
+                List<BoardColumn> shifted = boardColumnRepository.findByBoard_IdAndPositionGreaterThanAndPositionLessThanEqual(
+                        column.getBoard().getId(), column.getPosition(), requestDTO.position());
+                shifted.forEach(c -> c.setPosition(c.getPosition() - 1));
+                boardColumnRepository.saveAll(shifted);
+            } else {
+                List<BoardColumn> shifted = boardColumnRepository.findByBoard_IdAndPositionLessThanAndPositionGreaterThanEqual(
+                        column.getBoard().getId(), column.getPosition(), requestDTO.position());
+                shifted.forEach(c -> c.setPosition(c.getPosition() + 1));
+                boardColumnRepository.saveAll(shifted);
             }
             column.setPosition(requestDTO.position());
-            return toDTO(column);
         }
-        return toDTO(column);
+
+        return toDTO(boardColumnRepository.save(column));
     }
 
-    public void delete(Integer id) {
+    public void delete(UUID id) {
         boardColumnRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Column not found"));
         boardColumnRepository.deleteById(id);
@@ -78,12 +80,12 @@ public class BoardColumnService {
 
     private BoardColumnResponseDTO toDTO(BoardColumn column) {
         return new BoardColumnResponseDTO(
-                column.getIdColumn(),
+                column.getId(),
                 column.getTitle(),
                 column.getColor(),
                 column.getPosition(),
                 column.getWipLimit(),
-                column.getBoard().getIdBoard()
+                column.getBoard().getId()
         );
     }
 }

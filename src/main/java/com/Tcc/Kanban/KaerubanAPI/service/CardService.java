@@ -1,8 +1,9 @@
 package com.Tcc.Kanban.KaerubanAPI.service;
 
-import com.Tcc.Kanban.KaerubanAPI.dto.CardRequestDTO;
-import com.Tcc.Kanban.KaerubanAPI.dto.CardResponseDTO;
-import com.Tcc.Kanban.KaerubanAPI.dto.LabelResponseDTO;
+import com.Tcc.Kanban.KaerubanAPI.dto.card.CardSaveDTO;
+import com.Tcc.Kanban.KaerubanAPI.dto.card.CardResponseDTO;
+import com.Tcc.Kanban.KaerubanAPI.dto.card.CardUpdateDTO;
+import com.Tcc.Kanban.KaerubanAPI.dto.label.LabelResponseDTO;
 import com.Tcc.Kanban.KaerubanAPI.model.BoardColumn;
 import com.Tcc.Kanban.KaerubanAPI.model.Card;
 import com.Tcc.Kanban.KaerubanAPI.model.Label;
@@ -16,6 +17,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -24,102 +27,105 @@ public class CardService {
     private final BoardColumnRepository boardColumnRepository;
     private final LabelRepository labelRepository;
 
-    public CardResponseDTO save(CardRequestDTO requestDTO) {
+    public CardResponseDTO save(CardSaveDTO requestDTO) {
         BoardColumn column = boardColumnRepository.findById(requestDTO.columnId())
                 .orElseThrow(() -> new EntityNotFoundException("Column not found"));
-
-        int nextPosition = cardRepository.countByColumn_IdColumn(requestDTO.columnId()).intValue();
         Card card = new Card();
         card.setTitle(requestDTO.title());
         card.setDescription(requestDTO.description());
-        card.setPosition(nextPosition);
+        if (requestDTO.position() != null) {
+            card.setPosition(requestDTO.position());
+        } else {
+            int nextPosition = cardRepository.countByColumn_Id(requestDTO.columnId()).intValue();
+            card.setPosition(nextPosition);
+        }
         card.setPriority(requestDTO.priority() != null ? Priority.valueOf(requestDTO.priority()) : null);
         card.setDueDate(requestDTO.dueDate());
         card.setColumn(column);
         return toDTO(cardRepository.save(card));
     }
 
-    public List<CardResponseDTO> findByColumn(Integer columnId) {
-        return cardRepository.findByColumn_IdColumnOrderByPosition(columnId)
+    public List<CardResponseDTO> findByColumn(UUID columnId) {
+        return cardRepository.findByColumn_IdOrderByPosition(columnId)
                 .stream().map(this::toDTO).toList();
     }
 
-    public CardResponseDTO findById(Integer id) {
+    public CardResponseDTO findById(UUID id) {
         return toDTO(cardRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Card not found")));
     }
 
-    @Transactional //tambem garante o save automatico
-    public CardResponseDTO update(Integer id, CardRequestDTO requestDTO) {
+    @Transactional
+    public CardResponseDTO update(UUID id, CardUpdateDTO requestDTO) {
         Card card = cardRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Card not found"));
-        card.setTitle(requestDTO.title());
-        card.setDescription(requestDTO.description());
-        card.setPriority(requestDTO.priority() != null ? Priority.valueOf(requestDTO.priority()) : null);
-        card.setDueDate(requestDTO.dueDate());
+        card.setTitle(requestDTO.title() != null ? requestDTO.title() : card.getTitle());
+        card.setDescription(requestDTO.description() != null ? requestDTO.description() : card.getDescription());
+        card.setPriority(requestDTO.priority() != null ? Priority.valueOf(requestDTO.priority()) : card.getPriority());
+        card.setDueDate(requestDTO.dueDate() != null ? requestDTO.dueDate() : card.getDueDate());
         Integer oldPosition = card.getPosition();
-        Integer oldColumnId = card.getColumn().getIdColumn();
-        Integer newColumnId = requestDTO.columnId() != null ? requestDTO.columnId() : oldColumnId;
+        UUID oldColumnId = card.getColumn().getId();
+        UUID newColumnId = requestDTO.columnId() != null ? requestDTO.columnId() : oldColumnId;
         Integer newPosition = requestDTO.position() != null
                 ? requestDTO.position()
-                :  newColumnId.equals(card.getColumn().getIdColumn()) ? oldPosition : cardRepository.countByColumn_IdColumn(newColumnId).intValue();
-        if (!newColumnId.equals(oldColumnId)) { //mudou coluna
+                : newColumnId.equals(oldColumnId) ? oldPosition : cardRepository.countByColumn_Id(newColumnId).intValue();
+        List<Card> affectedCards = List.of();
+        if (!newColumnId.equals(oldColumnId)) { // mudou coluna
             BoardColumn newColumn = boardColumnRepository.findById(newColumnId)
                     .orElseThrow(() -> new EntityNotFoundException("Column not found"));
-            //Coluna de origem -> atualiza as position para preencher vão
-            List<Card> originColumn = cardRepository.findByColumn_IdColumnAndPositionGreaterThan(oldColumnId, oldPosition);
+            List<Card> originColumn = cardRepository.findByColumn_IdAndPositionGreaterThan(oldColumnId, oldPosition);
             originColumn.forEach(c -> c.setPosition(c.getPosition() - 1));
-            //Coluna de destino -> atualiza as positions para abrir espaço
-            List<Card>  destinationColumn = cardRepository.findByColumn_IdColumnAndPositionGreaterThanEqual(newColumnId, newPosition);
+            List<Card> destinationColumn = cardRepository.findByColumn_IdAndPositionGreaterThanEqual(newColumnId, newPosition);
             destinationColumn.forEach(c -> c.setPosition(c.getPosition() + 1));
-            //Card
             card.setColumn(newColumn);
             card.setPosition(newPosition);
-
-        } else if (!newPosition.equals(oldPosition)) { //mudou apenas a posição
-            if(newPosition > oldPosition) {
-                // cards que vão se mover para antes do card que mudou
-                List<Card> decrementCards = cardRepository.findByColumn_IdColumnAndPositionGreaterThanAndPositionLessThanEqual(
-                        oldColumnId, oldPosition,newPosition);
-                decrementCards.forEach(c -> c.setPosition(c.getPosition() - 1));
-            } else  {
-                // cards que vão se mover para depois do card que mudou
-                List<Card> incrementCards = cardRepository.findByColumn_IdColumnAndPositionLessThanAndPositionGreaterThanEqual(
-                        oldColumnId, oldPosition,newPosition);
-                incrementCards.forEach(c -> c.setPosition(c.getPosition() + 1));
+            affectedCards = Stream.concat(originColumn.stream(), destinationColumn.stream()).toList();
+        } else if (!newPosition.equals(oldPosition)) { // mudou apenas a posição
+            if (newPosition > oldPosition) {
+                affectedCards = cardRepository.findByColumn_IdAndPositionGreaterThanAndPositionLessThanEqual(
+                        oldColumnId, oldPosition, newPosition);
+                affectedCards.forEach(c -> c.setPosition(c.getPosition() - 1));
+            } else {
+                affectedCards = cardRepository.findByColumn_IdAndPositionLessThanAndPositionGreaterThanEqual(
+                        oldColumnId, oldPosition, newPosition);
+                affectedCards.forEach(c -> c.setPosition(c.getPosition() + 1));
             }
             card.setPosition(newPosition);
         }
-        return toDTO(card);
+        cardRepository.saveAll(affectedCards);
+        return toDTO(cardRepository.save(card));
     }
 
-    public void delete(Integer id) {
+    public void delete(UUID id) {
         cardRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Card not found"));
         cardRepository.deleteById(id);
     }
 
-
-    public CardResponseDTO addLabel(Integer idCard, Integer idLabel){
+    @Transactional
+    public CardResponseDTO addLabel(UUID idCard, UUID idLabel){
         Card card = cardRepository.findById(idCard)
                 .orElseThrow(() -> new EntityNotFoundException("Card not found"));
         Label label = labelRepository.findById(idLabel)
                 .orElseThrow(() -> new EntityNotFoundException("Label not found"));
-        card.getLabels().add(label);
+        if (!card.getLabels().contains(label)) {
+            card.getLabels().add(label);
+        }
         return toDTO(cardRepository.save(card));
     }
 
-    public CardResponseDTO removeLabel(Integer idCard, Integer idLabel){
+    @Transactional
+    public CardResponseDTO removeLabel(UUID idCard, UUID idLabel){
         Card card = cardRepository.findById(idCard)
                 .orElseThrow(() -> new EntityNotFoundException("Card not found"));
-        card.getLabels().removeIf(label -> label.getIdLabel().equals(idLabel));
+        card.getLabels().removeIf(label -> label.getId().equals(idLabel));
         return toDTO(cardRepository.save(card));
     }
 
     private LabelResponseDTO labelToDTO(Label label) {
         return new LabelResponseDTO(
-                label.getBoard().getIdBoard(),
-                label.getIdLabel(),
+                label.getBoard().getId(),
+                label.getId(),
                 label.getName(),
                 label.getColor());
 
@@ -127,14 +133,14 @@ public class CardService {
 
     private CardResponseDTO toDTO(Card card) {
         return new CardResponseDTO(
-                card.getIdCard(),
+                card.getId(),
                 card.getTitle(),
                 card.getDescription(),
                 card.getPosition(),
                 card.getPriority() != null ? card.getPriority().name() : null,
                 card.getDueDate(),
                 card.getCreatedAt(),
-                card.getColumn().getIdColumn(),
+                card.getColumn().getId(),
                 card.getLabels().stream().map(this::labelToDTO).toList()
 
         );

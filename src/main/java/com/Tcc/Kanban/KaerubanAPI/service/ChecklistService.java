@@ -1,9 +1,9 @@
 package com.Tcc.Kanban.KaerubanAPI.service;
 
-import com.Tcc.Kanban.KaerubanAPI.dto.ChecklistItemRequestDTO;
-import com.Tcc.Kanban.KaerubanAPI.dto.ChecklistItemResponseDTO;
-import com.Tcc.Kanban.KaerubanAPI.dto.ChecklistRequestDTO;
-import com.Tcc.Kanban.KaerubanAPI.dto.ChecklistResponseDTO;
+import com.Tcc.Kanban.KaerubanAPI.dto.checklist.item.ChecklistItemRequestDTO;
+import com.Tcc.Kanban.KaerubanAPI.dto.checklist.item.ChecklistItemResponseDTO;
+import com.Tcc.Kanban.KaerubanAPI.dto.checklist.ChecklistRequestDTO;
+import com.Tcc.Kanban.KaerubanAPI.dto.checklist.ChecklistResponseDTO;
 import com.Tcc.Kanban.KaerubanAPI.model.Card;
 import com.Tcc.Kanban.KaerubanAPI.model.Checklist;
 import com.Tcc.Kanban.KaerubanAPI.model.ChecklistItem;
@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -33,17 +34,17 @@ public class ChecklistService {
         return toDTO(checklistRepository.save(checklist));
     }
 
-    public List<ChecklistResponseDTO> findByCard(Integer cardId) {
-        return checklistRepository.findByCard_IdCardOrderByPosition(cardId)
+    public List<ChecklistResponseDTO> findByCard(UUID cardId) {
+        return checklistRepository.findByCard_IdOrderByPosition(cardId)
                 .stream().map(this::toDTO).toList();
     }
 
-    public ChecklistResponseDTO findById(Integer id) {
+    public ChecklistResponseDTO findById(UUID id) {
         return toDTO(checklistRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Checklist not found")));
     }
 
-    public ChecklistResponseDTO update(Integer id, ChecklistRequestDTO requestDTO) {
+    public ChecklistResponseDTO update(UUID id, ChecklistRequestDTO requestDTO) {
         Checklist checklist = checklistRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Checklist not found"));
         checklist.setTitle(requestDTO.title());
@@ -51,7 +52,7 @@ public class ChecklistService {
         return toDTO(checklistRepository.save(checklist));
     }
 
-    public void delete(Integer id) {
+    public void delete(UUID id) {
         checklistRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Checklist not found"));
         checklistRepository.deleteById(id);
@@ -70,12 +71,12 @@ public class ChecklistService {
         return itemToDTO(checklistItemRepository.save(item));
     }
 
-    public List<ChecklistItemResponseDTO> findItemsByChecklist(Integer checklistId) {
-        return checklistItemRepository.findByChecklist_IdChecklistsOrderByPosition(checklistId)
+    public List<ChecklistItemResponseDTO> findItemsByChecklist(UUID checklistId) {
+        return checklistItemRepository.findByChecklist_IdOrderByPosition(checklistId)
                 .stream().map(this::itemToDTO).toList();
     }
 
-    public ChecklistItemResponseDTO updateItem(Integer id, ChecklistItemRequestDTO requestDTO) {
+    public ChecklistItemResponseDTO updateItem(UUID id, ChecklistItemRequestDTO requestDTO) {
         ChecklistItem item = checklistItemRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Item not found"));
         item.setContent(requestDTO.content());
@@ -84,7 +85,7 @@ public class ChecklistService {
         return itemToDTO(checklistItemRepository.save(item));
     }
 
-    public void deleteItem(Integer id) {
+    public void deleteItem(UUID id) {
         checklistItemRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Item not found"));
         checklistItemRepository.deleteById(id);
@@ -93,24 +94,24 @@ public class ChecklistService {
 
     private ChecklistResponseDTO toDTO(Checklist checklist) {
         List<ChecklistItemResponseDTO> items = checklistItemRepository
-                .findByChecklist_IdChecklistsOrderByPosition(checklist.getIdChecklists())
+                .findByChecklist_IdOrderByPosition(checklist.getId())
                 .stream().map(this::itemToDTO).toList();
         return new ChecklistResponseDTO(
-                checklist.getIdChecklists(),
+                checklist.getId(),
                 checklist.getTitle(),
                 checklist.getPosition(),
-                checklist.getCard().getIdCard(),
+                checklist.getCard().getId(),
                 items
         );
     }
 
     private ChecklistItemResponseDTO itemToDTO(ChecklistItem item) {
         return new ChecklistItemResponseDTO(
-                item.getIdItem(),
+                item.getId(),
                 item.getContent(),
                 item.getIsChecked(),
                 item.getPosition(),
-                item.getChecklist().getIdChecklists()
+                item.getChecklist().getId()
         );
     }
 }

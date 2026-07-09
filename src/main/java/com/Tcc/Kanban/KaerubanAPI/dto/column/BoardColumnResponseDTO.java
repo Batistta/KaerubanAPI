@@ -1,10 +1,12 @@
-package com.Tcc.Kanban.KaerubanAPI.dto;
+package com.Tcc.Kanban.KaerubanAPI.dto.column;
+
+import java.util.UUID;
 
 public record BoardColumnResponseDTO(
-        Integer idColumn,
+        UUID idColumn,
         String title,
         String color,
         Integer position,
         Integer wipLimit,
-        Integer boardId
+        UUID boardId
 ) {}

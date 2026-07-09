@@ -1,12 +1,13 @@
-package com.Tcc.Kanban.KaerubanAPI.dto;
+package com.Tcc.Kanban.KaerubanAPI.dto.comment;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public record CommentResponseDTO(
-        Integer idComents,
+        UUID idComment,
         String content,
         LocalDateTime createdAt,
-        Integer userId,
+        UUID userId,
         String userName,
-        Integer cardId
+        UUID cardId
 ) {}

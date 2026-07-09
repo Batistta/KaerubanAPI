@@ -5,14 +5,16 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Getter @Setter
+@Table(name = "board")
 public class Board {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(nullable = false)
-    private Integer idBoard;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(nullable = false, columnDefinition = "BINARY(16)", name = "id_board")
+    private UUID id;
 
     @Column(nullable = false)
     private String title;
@@ -20,15 +22,18 @@ public class Board {
     @Column(nullable = false, length = 7)
     private String color;
 
-    @ManyToOne
-    @JoinColumn(name = "fk_owner", nullable = false)
-    private User owner;
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<BoardMember> members;
 
-    @ManyToMany
-    @JoinTable(
-            name = "board_member",
-            joinColumns = @JoinColumn(name = "fk_boards_id_board"),
-            inverseJoinColumns = @JoinColumn(name = "fk_users_id_user")
-    )
-    private List<User> members;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Board other)) return false;
+        return id != null && id.equals(other.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }
