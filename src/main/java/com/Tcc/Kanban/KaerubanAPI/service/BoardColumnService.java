@@ -50,11 +50,10 @@ public class BoardColumnService {
     public BoardColumnResponseDTO update(UUID id, BoardColumnUpdateDTO requestDTO) {
         BoardColumn column = boardColumnRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Column not found"));
-        column.setTitle(requestDTO.title());
-        column.setColor(requestDTO.color());
-        column.setWipLimit(requestDTO.wipLimit());
-
-        if (!column.getPosition().equals(requestDTO.position())) {
+        column.setTitle(requestDTO.title() != null ? requestDTO.title() : column.getTitle());
+        column.setColor(requestDTO.color()  != null ? requestDTO.color() : column.getColor());
+        column.setWipLimit(requestDTO.wipLimit() != null ? requestDTO.wipLimit() : column.getWipLimit());
+        if (!(column.getPosition().equals(requestDTO.position())) && requestDTO.position() != null) {
             if (requestDTO.position() > column.getPosition()) {
                 List<BoardColumn> shifted = boardColumnRepository.findByBoard_IdAndPositionGreaterThanAndPositionLessThanEqual(
                         column.getBoard().getId(), column.getPosition(), requestDTO.position());

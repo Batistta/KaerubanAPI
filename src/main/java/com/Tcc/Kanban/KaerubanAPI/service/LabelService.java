@@ -5,7 +5,6 @@ import com.Tcc.Kanban.KaerubanAPI.dto.label.LabelResponseDTO;
 import com.Tcc.Kanban.KaerubanAPI.model.Board;
 import com.Tcc.Kanban.KaerubanAPI.model.Label;
 import com.Tcc.Kanban.KaerubanAPI.repository.BoardRepository;
-import com.Tcc.Kanban.KaerubanAPI.repository.CardRepository;
 import com.Tcc.Kanban.KaerubanAPI.repository.LabelRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
