@@ -20,9 +20,10 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     public UserResponseDTO save(UserRequestDTO requestDTO) {
-        if (userRepository.existsByEmailIgnoreCase(requestDTO.email())){
+        if (userRepository.findByEmail(requestDTO.email()) != null){
             throw new IllegalArgumentException("Email already in use");
         }
+
         User user = new User();
         user.setName(requestDTO.name());
         user.setEmail(requestDTO.email().toLowerCase());
@@ -45,7 +46,7 @@ public class UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
         if (!user.getEmail().equals(requestDTO.email().toLowerCase())
-                && userRepository.existsByEmailIgnoreCase(requestDTO.email())) {
+                && userRepository.findByEmail(requestDTO.email()) != null) {
             throw new IllegalArgumentException("Email already in use");
         }
         user.setName(requestDTO.name());
