@@ -7,6 +7,7 @@ import com.Tcc.Kanban.KaerubanAPI.model.User;
 import com.Tcc.Kanban.KaerubanAPI.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -20,8 +21,9 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     public UserResponseDTO save(UserRequestDTO requestDTO) {
-        if (userRepository.findByEmail(requestDTO.email()) != null){
-            throw new IllegalArgumentException("Email already in use");
+        String email = requestDTO.email().toLowerCase();
+        if (userRepository.existsByEmail(email)) {
+            throw new IllegalArgumentException("Email já em uso " + email);
         }
 
         User user = new User();
@@ -41,13 +43,21 @@ public class UserService {
         return toDTO(userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("User not found")));
     }
+    public UserResponseDTO findByEmail(String email){
+        try{
+            return toDTO(userRepository.findByEmail(email)
+                    .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado: " + email)));
+        } catch (RuntimeException e){
+            throw new EntityNotFoundException("User not found");
+        }
 
+    }
     public UserResponseDTO update(UUID id, UserUpdateDTO requestDTO) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
-        if (!user.getEmail().equals(requestDTO.email().toLowerCase())
-                && userRepository.findByEmail(requestDTO.email()) != null) {
-            throw new IllegalArgumentException("Email already in use");
+        String email = requestDTO.email().toLowerCase();
+        if (!user.getEmail().equals(email) && userRepository.existsByEmail(email)) {
+            throw new IllegalArgumentException("Email já em uso " + email);
         }
         user.setName(requestDTO.name());
         user.setEmail(requestDTO.email().toLowerCase());
@@ -71,4 +81,6 @@ public class UserService {
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
         userRepository.deleteById(id);
     }
+
+
 }

@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -27,18 +28,21 @@ public class SecurityFilter extends OncePerRequestFilter {
         var token = this.recoverToken(request);
         if(token != null){
             var subject = tokenService.validateToken(token);
-            UserDetails user = new UserDetailsImpl(userRepository.findByEmail(subject));
+            var foundUser = userRepository.findByEmail(subject)
+                    .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado: " + subject));
 
-            var authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+            if (foundUser != null) {
+                UserDetails user = new UserDetailsImpl(foundUser);
+                var authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
         }
-        filterChain.doFilter(request, response); //chama o prox filtro
-
+        filterChain.doFilter(request, response);
     }
 
     private String recoverToken(HttpServletRequest request){
         var authHeader = request.getHeader("Authorization");
         if(authHeader == null) return null;
-        return authHeader.replace("Bearer", "");
+        return authHeader.substring(7); // "Bearer ".length() == 7
     }
 }

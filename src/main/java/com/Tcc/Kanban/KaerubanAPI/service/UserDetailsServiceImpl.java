@@ -1,6 +1,7 @@
 
 package com.Tcc.Kanban.KaerubanAPI.service;
 
+import com.Tcc.Kanban.KaerubanAPI.model.User;
 import com.Tcc.Kanban.KaerubanAPI.model.UserDetailsImpl;
 import com.Tcc.Kanban.KaerubanAPI.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +17,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        return new UserDetailsImpl(userRepository.findByEmail(email));
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado: " + email));
+        return new UserDetailsImpl(user);
     }
 }

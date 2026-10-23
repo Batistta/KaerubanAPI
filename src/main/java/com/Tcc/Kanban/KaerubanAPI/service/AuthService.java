@@ -23,7 +23,8 @@ public class AuthService {
                 requestDTO.password());
         var auth = authenticationManager.authenticate(usernamePassword);
         var token = tokenService.generateToken((UserDetailsImpl) auth.getPrincipal());
-        return new LoginResponseDTO(token);
+        var userId = userService.findByEmail(requestDTO.email()).idUser();
+        return new LoginResponseDTO(token, userId);
     }
 
     public void register(RegisterDTO requestDTO){
