@@ -28,8 +28,8 @@ public class BoardMember {
     @JoinColumn(name = "id_role", nullable = false,  columnDefinition = "BINARY(16)")
     private Role role;
 
-    @Column(name = "last_acess")
-    private LocalDateTime lastAcess;
+    @Column(name = "last_access")
+    private LocalDateTime lastAccess;
 
     @Override
     public boolean equals(Object o) {

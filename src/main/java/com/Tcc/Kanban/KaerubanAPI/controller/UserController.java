@@ -1,5 +1,6 @@
 package com.Tcc.Kanban.KaerubanAPI.controller;
 
+import com.Tcc.Kanban.KaerubanAPI.dto.user.PasswordChangeDTO;
 import com.Tcc.Kanban.KaerubanAPI.dto.user.UserRequestDTO;
 import com.Tcc.Kanban.KaerubanAPI.dto.user.UserResponseDTO;
 import com.Tcc.Kanban.KaerubanAPI.dto.user.UserUpdateDTO;
@@ -8,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -43,6 +45,13 @@ public class UserController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         userService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}/password")
+    public ResponseEntity<Void> changePassword(@PathVariable UUID id,
+                                               @Valid @RequestBody PasswordChangeDTO dto, Authentication auth) {
+        userService.changePassword(id, dto, auth);
         return ResponseEntity.noContent().build();
     }
 }

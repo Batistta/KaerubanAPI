@@ -28,9 +28,9 @@ public class BoardController {
         return ResponseEntity.ok(boardService.findAll());
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<BoardResponseDTO> getById(@PathVariable UUID id) {
-        return ResponseEntity.ok(boardService.findById(id));
+    @GetMapping("/{id}/{userId}/access")
+    public ResponseEntity<BoardResponseDTO> accessById(@PathVariable UUID id, @PathVariable UUID userId) {
+        return ResponseEntity.ok(boardService.accessById(id, userId));
     }
 
     @GetMapping("/user/{userId}")
@@ -42,6 +42,12 @@ public class BoardController {
         }
         return ResponseEntity.ok(boardService.findByUser(userId));
     }
+
+    @GetMapping("/user/{userId}/last-access")
+    public ResponseEntity<List<BoardResponseDTO>> getByUserLastAccess(@PathVariable UUID userId){
+        return ResponseEntity.ok(boardService.findRecentBoards(userId));
+    }
+
 
     @GetMapping("/user/{userId}/member")
     public ResponseEntity<List<BoardResponseDTO>> getByMember(@PathVariable UUID userId) {

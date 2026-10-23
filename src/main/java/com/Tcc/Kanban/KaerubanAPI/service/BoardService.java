@@ -7,15 +7,24 @@ import com.Tcc.Kanban.KaerubanAPI.model.Board;
 import com.Tcc.Kanban.KaerubanAPI.model.BoardMember;
 import com.Tcc.Kanban.KaerubanAPI.model.Role;
 import com.Tcc.Kanban.KaerubanAPI.model.User;
+import com.Tcc.Kanban.KaerubanAPI.repository.BoardMemberRepository;
 import com.Tcc.Kanban.KaerubanAPI.repository.BoardRepository;
 import com.Tcc.Kanban.KaerubanAPI.repository.RoleRepository;
 import com.Tcc.Kanban.KaerubanAPI.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +32,7 @@ public class BoardService {
     private final BoardRepository boardRepository;
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final BoardMemberRepository boardMemberRepository;
 
     public BoardResponseDTO save(BoardRequestDTO requestDTO) {
         User owner = userRepository.findById(requestDTO.ownerId())
@@ -54,9 +64,25 @@ public class BoardService {
                 .orElseThrow(() -> new EntityNotFoundException("Board not found")));
     }
 
+    @Transactional
+    public BoardResponseDTO accessById(UUID boardId, UUID userId) {
+        BoardMember member = boardMemberRepository.findByBoard_IdAndUser_Id(boardId, userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN));
+        member.setLastAccess(LocalDateTime.now());
+        return toDTO(member.getBoard());
+    }
     public List<BoardResponseDTO> findByUser(UUID userId) {
         return boardRepository.findByMembers_User_Id(userId)
                 .stream().map(this::toDTO).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<BoardResponseDTO> findRecentBoards(UUID userId) {
+        return boardMemberRepository.findTop4ByUser_IdOrderByLastAccessDesc(userId)
+                .stream()
+                .map(BoardMember::getBoard)
+                .map(BoardResponseDTO::from)
+                .toList();
     }
 
     public List<BoardResponseDTO> findByUserAndTitle(UUID userId, String title) {
@@ -112,7 +138,8 @@ public class BoardService {
     }
 
     private UserResponseDTO userToDTO(User user) {
-        return new UserResponseDTO(user.getId(), user.getName(), user.getEmail(), user.getCreatedAt());
+        return new UserResponseDTO(user.getId(), user.getName(), user.getEmail(),
+                user.getPicture(), user.getCreatedAt());
     }
 
     private BoardResponseDTO toDTO(Board board) {
